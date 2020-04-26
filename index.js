@@ -87,7 +87,7 @@ io.on('connection', (socket) => {
           console.log('user disconnect event fired');
         }
         console.log('settimeout called');
-      }, 100)
+      }, 1000)
     }
   });
 
@@ -110,6 +110,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('page loads', (username, page) => {
+    console.log('page loads called');
     console.log(username, page);
     let user = userList.find(obj => obj.username === username);
     user.socketId = socket.id;
