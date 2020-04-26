@@ -48,7 +48,6 @@ app.post('/login', (req, res) => {
     if(loggedInUsers.includes(req.body.username))
       return res.status(500).send('user already logged in from different device/tab');
     let userFound = creds.find((user) => (user.username === req.body.username) && (user.password === req.body.password));
-    console.log(userFound);
     if(userFound){
       loggedInUsers.push(req.body.username)
       return res.status(200).send('success');
@@ -66,16 +65,10 @@ app.get('/about', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
-  console.log(socket.id);
-  
   
   socket.on('disconnect', () => { // Disconnect pe kam baki hai, remove user if tab disconnected
     let user = userList.find(user => user.socketId === socket.id && user.page !== 'login');
-    console.log('user disconnected outer');
     if(user){
-      console.log('user disconnected');
-      console.log(userList);
       user.socketId = null;
       user.page = null;
       setTimeout(() => {
@@ -84,15 +77,12 @@ io.on('connection', (socket) => {
           userNames.splice(userNames.indexOf(user.username), 1);
           loggedInUsers.splice(loggedInUsers.indexOf(user.username), 1);
           userList.splice(userList.indexOf(user), 1);
-          console.log('user disconnect event fired');
         }
-        console.log('settimeout called');
       }, 1000)
     }
   });
 
   socket.on('user online', (onlineUser) => {
-    console.log(onlineUser + " is online");
     let obj = {};
     obj.username = onlineUser;
     obj.socketId = socket.id;
@@ -101,22 +91,16 @@ io.on('connection', (socket) => {
 
     userNames.push(onlineUser);
     socket.broadcast.emit('new user online', onlineUser);
-    console.log(userList);
   })
 
   socket.on('chat message', (msg) => {
-    console.log('message: ' + msg);
     io.emit('chat message',msg);
   });
 
   socket.on('page loads', (username, page) => {
-    console.log('page loads called');
-    console.log(username, page);
     let user = userList.find(obj => obj.username === username);
     user.socketId = socket.id;
     user.page = page;
-    console.log('page loads');
-    console.log(userList);
     socket.emit('show all online users', userNames);
   })
 
