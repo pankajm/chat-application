@@ -45,6 +45,44 @@ body {
   <h2>This is About Page</h2>
   <p>Some content..</p>
 </div>
+<ul id="online_users">
+</ul>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+      $(function () {
+        var socket = io();
+        // $('form').submit(function(e) {
+        //   e.preventDefault(); // prevents page reloading
+        //   socket.emit('chat message', $('#m').val());
+        //   $('#m').val('');
+        //   return false;
+        // });
+        // socket.on('chat message', function(msg){
+        //   $('#messages').append($('<li>').text(msg));
+        // });
+        socket.on('new user online', function(user){
+          console.log('user online aa gaya');
+          $('#online_users').append($('<li id='+user+'>').text(user));
+        })
+
+        socket.emit('page loads', localStorage.getItem('username'), 'about');
+
+        socket.on('show all online users', function(users){
+          users.forEach(user => {
+            console.log(user);
+            $('#online_users').append($('<li id='+user+'>').text(user));
+          });
+        })
+
+        socket.on('user disconnected', function(user){
+          console.log('user disconect ho gaya');
+          console.log($('#'+user));
+          $('#'+user).remove();
+        })
+
+      });
+    </script>
 
 </body>
 </html>

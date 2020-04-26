@@ -133,7 +133,7 @@ span.psw {
 
 <div id="id01" class="modal">
   
-  <form class="modal-content animate" action="/login" method="post">
+  <form class="modal-content animate" action="">
     <!-- <div class="imgcontainer">
       <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
       <img src="img_avatar2.png" alt="Avatar" class="avatar">
@@ -141,14 +141,13 @@ span.psw {
 
     <div class="container">
       <label for="uname"><b>Username</b></label>
-      <input type="text" placeholder="Enter Username" name="uname" required>
+      <input id="username" type="text" placeholder="Enter Username" name="uname" required>
 
       <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" name="psw" required>
+      <input id="password" type="password" placeholder="Enter Password" name="psw" required>
         
       <button type="submit">Login</button>
-      <label>
-        <input type="checkbox" checked="checked" name="remember"> Remember me
+      <label id="errorText">
       </label>
     </div>
 
@@ -169,6 +168,47 @@ window.onclick = function(event) {
         modal.style.display = "none";
     }
 }
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script>
+  $(function () {
+    var socket = io();
+    $('form').submit(function(e) {
+      e.preventDefault(); // prevents page reloading
+      $.ajax({  
+          type: 'POST',  
+          url: "http://localhost:3000/login",  
+          cache: false,  
+          async: false,
+          data: { 
+            username:$('#username').val(), 
+            password:$('#password').val()
+          },
+          success : () => {
+            console.log('ajax sucess');
+            socket.emit('user online', $('#username').val());
+            localStorage.setItem('username', $('#username').val());
+            window.location = "http://localhost:3000/home";
+          },
+          error : (error) => {
+            console.log('ajax error'+JSON.stringify(error));
+            $('#errorText').text(error.responseText);
+          }
+      })
+      return false;
+    });
+    // $('form').submit(function(e) {
+    //   e.preventDefault(); // prevents page reloading
+    //   socket.emit('chat message', $('#m').val());
+    //   $('#m').val('');
+    //   return false;
+    // });
+    // socket.on('chat message', function(msg){
+    //   $('#messages').append($('<li>').text(msg));
+    // });
+
+  });
 </script>
 
 </body>

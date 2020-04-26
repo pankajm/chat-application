@@ -11,6 +11,7 @@ body {
 .topnav {
   overflow: hidden;
   background-color: #333;
+  width: 80%;
 }
 
 .topnav a {
@@ -31,6 +32,13 @@ body {
   background-color: #4CAF50;
   color: white;
 }
+
+.userColumn {
+  float:right;
+  height:100%;
+  width:20%;
+  text-align:left;
+}
 </style>
 </head>
 <body>
@@ -45,6 +53,52 @@ body {
   <h2>This is Home Page</h2>
   <p>Some content..</p>
 </div>
+<div>
+<ul class="userColumn" id="online_users">
+  Online Users 
+</ul>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script>
+  $(function () {
+    console.log('before');
+    $( document ).ready(function() {
+      console.log( "ready!" );
+    });
+    var socket = io();
+    // $('form').submit(function(e) {
+    //   e.preventDefault(); // prevents page reloading
+    //   socket.emit('chat message', $('#m').val());
+    //   $('#m').val('');
+    //   return false;
+    // });
+    // socket.on('chat message', function(msg){
+    //   $('#messages').append($('<li>').text(msg));
+    // });
+    socket.on('new user online', function(user){
+      console.log('user online aa gaya');
+      $('#online_users').append($('<li id='+user+'>').text(user));
+    })
+    socket.emit('page loads', localStorage.getItem('username'), 'home');
+
+    socket.on('show all online users', function(users){
+      users.forEach(user => {
+          console.log(user);
+          $('#online_users').append($('<li id='+user+'>').text(user));
+      });
+    })
+
+    socket.on('user disconnected', function(user){
+      console.log('user disconect ho gaya');
+      // $('#online_users').filter(function() { return $.text([this]) === user; }).remove();
+      console.log($('#'+user));
+      $('#'+user).remove();
+    })
+
+  });
+</script>
+
 
 </body>
 </html>

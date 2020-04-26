@@ -52,9 +52,9 @@
       <p>Some content..</p>
     </div>
 
-
-
     <ul id="messages">
+    </ul>
+    <ul id="online_users">
     </ul>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
@@ -73,6 +73,26 @@
         socket.on('chat message', function(msg){
           $('#messages').append($('<li>').text(msg));
         });
+
+        socket.on('new user online', function(user){
+          console.log('user online aa gaya');
+          $('#online_users').append($('<li id='+user+'>').text(user));
+        })
+
+        socket.emit('page loads', localStorage.getItem('username'), 'chat');
+
+        socket.on('show all online users', function(users){
+          users.forEach(user => {
+            console.log(user);
+            $('#online_users').append($('<li id='+user+'>').text(user));
+          });
+        })
+
+        socket.on('user disconnected', function(user){
+          console.log('user disconect ho gaya');
+          console.log($('#'+user));
+          $('#'+user).remove();
+        })
       });
     </script>
   </body>
