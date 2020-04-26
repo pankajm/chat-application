@@ -3,6 +3,7 @@ var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var bodyParser = require('body-parser');
+var {router, loggedInUsers} = require('./routes');
 
 
 app.use(express.json());
@@ -12,61 +13,14 @@ app.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
 app.use(bodyParser.json())
 
+app.use('/', router);
+
 let userList = [];
-
 let userNames = [];
-let socketConnections = [];
-let loggedInUsers = [];
-
-let creds = [
-  {
-    username:"timon",
-    password:"1234"
-  },
-  {
-    username:"pumba",
-    password:"1234"
-  },
-  {
-    username:"simba",
-    password:"786"
-  }
-];
-
-app.set('view engine', 'pug');
-
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/login.html');
-});
-
-app.get('/home', (req, res) => {
-  console.log('home madhe ala')
-  res.sendFile(__dirname + '/views/index.html');
-});
-
-app.post('/login', (req, res) => {
-    if(loggedInUsers.includes(req.body.username))
-      return res.status(500).send('user already logged in from different device/tab');
-    let userFound = creds.find((user) => (user.username === req.body.username) && (user.password === req.body.password));
-    if(userFound){
-      loggedInUsers.push(req.body.username)
-      return res.status(200).send('success');
-    }
-    else  
-      return res.status(500).send("User not registered");
-})
-
-app.get('/chat', (req, res) => {
-  res.sendFile(__dirname + '/views/chat.html');
-});
-
-app.get('/about', (req, res) => {
-  res.sendFile(__dirname + '/views/about.html');
-});
 
 io.on('connection', (socket) => {
   
-  socket.on('disconnect', () => { // Disconnect pe kam baki hai, remove user if tab disconnected
+  socket.on('disconnect', () => { // Disconnect event is called after page refresh and tab close
     let user = userList.find(user => user.socketId === socket.id && user.page !== 'login');
     if(user){
       user.socketId = null;
@@ -82,6 +36,11 @@ io.on('connection', (socket) => {
     }
   });
 
+
+  /** When Any user successfull singed in this event is called 
+   * Other users are notified about new user so as to update the list of
+   * online users
+  */
   socket.on('user online', (onlineUser) => {
     let obj = {};
     obj.username = onlineUser;
@@ -93,10 +52,15 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('new user online', onlineUser);
   })
 
+
+  /** Chat message event for broadcasting new message */
   socket.on('chat message', (msg) => {
     io.emit('chat message',msg);
   });
 
+  /** This event will be called after page load (home, chat, about) so as to refresh
+   * online users list for that page of that user only
+   */
   socket.on('page loads', (username, page) => {
     let user = userList.find(obj => obj.username === username);
     user.socketId = socket.id;
@@ -109,3 +73,4 @@ io.on('connection', (socket) => {
 http.listen(3000, () => {
   console.log('listening on port:3000');
 });
+
